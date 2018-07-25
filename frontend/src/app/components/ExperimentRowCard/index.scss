@@ -1,0 +1,147 @@
+@import '~photon-colors/colors.scss';
+@import '../../../styles/_utils';
+
+.experiment-summary {
+  @include flex-container(column, flex-start, stretch);
+
+  @include respond-to('big') {
+    width: 250px;
+
+    &:nth-child(3n+1) {
+      margin-left: 0;
+    }
+  }
+
+  @include respond-to('medium') {
+    margin: 0 3% $grid-unit * 2;
+    width: 250px;
+  }
+
+  @include respond-to('small') {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+    min-width: 250px;
+    width: 98%;
+  }
+
+  background-color: $white;
+  border-radius: $small-border-radius + 1;
+  box-shadow: 0 0 0 1px $transparent-black-1, 0 1px 0 1px $transparent-black-1;
+  cursor: pointer;
+  margin: 0 0 ($grid-unit * 1.75) ($grid-unit * 2);
+  position: relative;
+  z-index: 1;
+
+  .experiment-information {
+    @include flex-container(column, flex-start, flex-start);
+    color: $black;
+    flex: 1;
+    padding: $grid-unit;
+    text-align: left;
+  }
+
+  header {
+    @include flex-container(row, space-between, center);
+    margin-bottom: $grid-unit * .5;
+    width: 100%;
+  }
+
+  .button {
+    width: 100%;
+  }
+
+  .experiment-feedback {
+    background-color: $blue-50;
+    background-image: url('../../../images/feedback-white.svg');
+    background-position: 6px 3px;
+    background-repeat: no-repeat;
+    background-size: 14px;
+    border-radius: 2px;
+    box-shadow: 0 1px 2px $transparent-black-1;
+    color: $white;
+    cursor: pointer;
+    display: block;
+    font-size: 11px;
+    line-height: 12px;
+    margin-right: 5px;
+    padding: 5px 10px 4px 26px;
+    position: relative;
+    top: -2px;
+
+    &:hover,
+    &:focus {
+      background-color: $blue-60;
+    }
+
+    &:active {
+      background-color: $blue-70;
+    }
+  }
+
+  h3 {
+    font-size: 17px;
+    margin: 0;
+  }
+
+  h4 {
+    margin: 0;
+  }
+
+  p {
+    color: $grey-90;
+    flex: 1;
+    font-size: 13px;
+    line-height: 22px;
+    margin: 0 0 $grid-unit * .5;
+  }
+
+  span {
+    color: $transparent-black-5;
+    font-size: 1.083 * $font-unit;
+    margin: 0 0 ($grid-unit * .5);
+
+    &.eol-message {
+      color: $eol-orange;
+    }
+  }
+
+  &:hover {
+    box-shadow: 0 1px 0 0 $transparent-white-2, 0 0 0 5px $transparent-white-2;
+    transition: box-shadow 150ms;
+  }
+}
+
+.experiment-actions {
+  .has-addon:not(.active) &.show-when-inactive {
+    display: block;
+  }
+
+  @include status-flags(-5px, -5px);
+}
+
+.experiment-icon-wrapper {
+  @include flex-container(row, center, center);
+  border-radius: $small-border-radius $small-border-radius 0 0;
+  box-shadow: 0 -2px 2px $transparent-white-1 inset;
+  height: $grid-unit * 6;
+  overflow: hidden;
+  position: relative;
+}
+
+.experiment-icon {
+  background-repeat: no-repeat;
+  background-size: 40px 40px;
+  filter: drop-shadow(0 1px 0 $transparent-black-1);
+  flex: 0 0 40px;
+  height: 40px;
+  opacity: .9;
+}
+
+html[dir="rtl"] .experiment-summary {
+    @include respond-to('big') {
+        &:nth-child(3n+1) {
+            margin-left: 40px;
+        }
+    }
+}

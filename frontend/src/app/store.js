@@ -1,16 +1,16 @@
-import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
-import promise from 'redux-promise';
+import { applyMiddleware, combineReducers, compose, createStore } from "redux";
+import promise from "redux-promise";
 
-import addonReducer from './reducers/addon';
-import browserReducer from './reducers/browser';
-import experimentsReducer from './reducers/experiments';
-import localizationsReducer from './reducers/localizations';
-import newsletterFormReducer from './reducers/newsletter-form';
-import varianttestsReducer from './reducers/varianttests';
-import newsReducer from './reducers/news';
+import addonReducer from "./reducers/addon";
+import browserReducer from "./reducers/browser";
+import experimentsReducer from "./reducers/experiments";
+import localizationsReducer from "./reducers/localizations";
+import newsletterFormReducer from "./reducers/newsletter-form";
+import varianttestsReducer from "./reducers/varianttests";
+import newsReducer from "./reducers/news";
 
-import experiments from '../../build/api/experiments.json';
-import newsUpdates from '../../build/api/news_updates.json';
+import experiments from "../../build/api/experiments.json";
+import newsUpdates from "../../build/api/news_updates.json";
 
 export const reducers = combineReducers({
   addon: addonReducer,
@@ -35,7 +35,7 @@ export const initialState = {
     hasAddon: null,
     installed: {},
     installedLoaded: false,
-    clientUUID: '',
+    clientUUID: "",
     restart: {
       isRequired: false,
       forExperiment: null
@@ -43,13 +43,18 @@ export const initialState = {
   }
 };
 
+try {
+  if (typeof window !== "undefined") {
+    initialState.addon.hasAddon = window.localStorage.getItem("hasAddon") === "true";
+  }
+} catch (e) {}
 
 export function createMiddleware() {
   return compose(
     applyMiddleware(
       promise
     ),
-    (typeof window !== 'undefined' && window.devToolsExtension) ? window.devToolsExtension() : f => f
+    (typeof window !== "undefined" && window.devToolsExtension) ? window.devToolsExtension() : f => f
   );
 }
 

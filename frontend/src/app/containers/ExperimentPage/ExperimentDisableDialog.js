@@ -1,9 +1,9 @@
 // @flow
-import { Localized } from 'fluent-react/compat';
-import React from 'react';
+import { Localized } from "fluent-react/compat";
+import React from "react";
 
-import Copter from '../../components/Copter';
-import { buildSurveyURL } from '../../lib/utils';
+import Copter from "../../components/Copter";
+import { buildSurveyURL } from "../../lib/utils";
 
 type ExperimentDisableDialogProps = {
   experiment: Object,
@@ -17,14 +17,24 @@ type ExperimentDisableDialogProps = {
 export default class ExperimentDisableDialog extends React.Component {
   props: ExperimentDisableDialogProps
 
+  modalContainer: Object
+
+  componentDidMount() {
+    if (this.modalContainer !== undefined) {
+      this.modalContainer.focus();
+    }
+  }
+
   render() {
     const { experiment, installed, clientUUID } = this.props;
     const { title, survey_url } = experiment;
 
-    const surveyURL = buildSurveyURL('disable', title, installed, clientUUID, survey_url);
+    const surveyURL = buildSurveyURL("disable", title, installed, clientUUID, survey_url);
 
     return (
-      <div className="modal-container">
+      <div className="modal-container" tabIndex="0"
+        ref={modalContainer => { this.modalContainer = modalContainer; }}
+        onKeyDown={e => this.handleKeyDown(e)}>
         <div id="disabled-feedback-modal" className="modal feedback-modal modal-bounce-in">
           <header className="modal-header-wrapper">
             <Localized id="feedbackUninstallTitle" $title={ experiment.title }>
@@ -44,10 +54,10 @@ export default class ExperimentDisableDialog extends React.Component {
           <div className="modal-actions">
             <Localized id="feedbackSubmitButton">
               <a
-                 onClick={e => this.submit(e)} href={surveyURL}
-                 target="_blank" rel="noopener noreferrer"
-                 className="submit button default large quit">
-                 Take a quick survey
+                onClick={e => this.submit(e)} href={surveyURL}
+                target="_blank" rel="noopener noreferrer"
+                className="submit button default large quit">
+                Take a quick survey
               </a>
             </Localized>
           </div>
@@ -57,10 +67,11 @@ export default class ExperimentDisableDialog extends React.Component {
   }
 
   submit(e: Object) {
-    this.props.sendToGA('event', {
-      eventCategory: 'ExperimentDetailsPage Interactions',
-      eventAction: 'button click',
-      eventLabel: 'exit survey disabled'
+    this.props.sendToGA("event", {
+      eventCategory: "ExperimentDetailsPage Interactions",
+      eventAction: "button click",
+      eventLabel: "exit survey disabled",
+      dimension11: this.props.experiment.slug
     });
     this.props.onSubmit(e);
   }
@@ -68,5 +79,27 @@ export default class ExperimentDisableDialog extends React.Component {
   cancel(e: Object) {
     e.preventDefault();
     this.props.onCancel(e);
+  }
+
+  handleKeyDown(e: Object) {
+    switch (e.key) {
+      case "Escape":
+        this.cancel(e);
+        break;
+      case "Enter": {
+        this.submit(e);
+
+        const { experiment, installed, clientUUID } = this.props;
+        const { title, survey_url } = experiment;
+        const surveyURL = buildSurveyURL("disable", title, installed, clientUUID, survey_url);
+
+        const newWindow = window.open();
+        newWindow.opener = null;
+        newWindow.location = surveyURL;
+        break;
+      }
+      default:
+        break;
+    }
   }
 }

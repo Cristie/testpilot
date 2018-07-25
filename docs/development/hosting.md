@@ -16,6 +16,35 @@ Your repository must include a `npm run package` script which, when run, will
 build the add-on and leave it in a file named `addon.xpi` in the root
 directory.
 
+Your add-on must use a custom update URL.  Examples follow, replace `%ID%` with
+your add-on's ID:
+
+`install.rdf`
+```xml
+<em:updateURL>https://testpilot.firefox.com/files/%ID%/updates.json</em:updateURL>
+```
+
+`manifest.json`
+```json
+"applications": {
+  "gecko": {
+    "id": "%ID%",
+    "update_url": "https://testpilot.firefox.com/files/%ID%/updates.json"
+  }
+},
+```
+
+You must add `--self-hosted` if you run the add-ons linter.  This is often an
+npm command in package.json.  For example:
+
+`package.json`
+```
+"scripts": {
+  "lint:addon": "addons-linter build/addon --self-hosted",
+...
+}
+```
+
 
 ## The bigger picture
 

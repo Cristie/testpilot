@@ -1,4 +1,4 @@
-![Test Pilot Logo](frontend/src/images/copter.png)
+<img src="frontend/src/app/components/Copter/img/copter.png" alt="Test Pilot Logo" width="328" height="265">  
 
 # Test Pilot
 
@@ -8,6 +8,8 @@ Test Pilot is not intended to replace trains for most features, nor is it a test
 
 [![Build](https://img.shields.io/circleci/project/mozilla/testpilot.svg)](https://circleci.com/gh/mozilla/testpilot/)
 [![codecov](https://codecov.io/gh/mozilla/testpilot/branch/master/graph/badge.svg)](https://codecov.io/gh/mozilla/testpilot)
+
+---
 
 ## Table of Contents
 
@@ -22,12 +24,10 @@ Test Pilot is not intended to replace trains for most features, nor is it a test
     - [Dev Deployment](docs/development/dev-deployment.md) - Deploying Test Pilot to the dev environment
     - [Verifying deployments](docs/development/verification.md) - Verifying Test Pilot deployments.
 - Developing experiments
+    - [Recommended process](docs/experiments/developing_an_experiment.md) 
     - [Experiment metrics](docs/experiments/ga.md) - The use of Google Analytics to track experiment data.
-    - [Variant testing](docs/experiments/variants.md) - Creating variant (e.g. A/B) tests in experiments.
-    - [Example experiments](docs/experiments/)
     - [Experiment Feedback Integration](docs/examples/feedback-buttons.md)
 - Metrics
-    - [Telemetry](docs/metrics/telemetry.md) - How we use Firefox telemetry.
     - [Google Analytics](docs/metrics/ga.md) - How we use Google Analytics.
     - [New features](docs/metrics/new_features.md) - Everything needed to instrument something new.
 - [Experiment content](docs/content/reference.md) - Management of experiment content.
@@ -38,11 +38,19 @@ Test Pilot is not intended to replace trains for most features, nor is it a test
 - [Code of conduct](docs/code_of_conduct.md)
 - [License](LICENSE)
 
+---
+
 ## Localization
 
 Test Pilot localization is managed via [Pontoon](https://pontoon.mozilla.org/projects/test-pilot-website/), not direct pull requests to the repository. If you want to fix a typo, add a new language, or simply know more about localization, please get in touch with the [existing localization team](https://pontoon.mozilla.org/teams/) for your language or Mozilla’s [l10n-drivers](https://wiki.mozilla.org/L10n:Mozilla_Team#Mozilla_Corporation) for guidance.
+
+---
 
 ## More Information
 
 - Wiki: https://wiki.mozilla.org/Test_Pilot
 - IRC: #testpilot on irc.mozilla.org
+
+---
+
+<img src="https://avatars2.githubusercontent.com/u/131524?s=200&v=4" width="50"></img>

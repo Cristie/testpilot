@@ -21,6 +21,8 @@ An experiment's YAML file is considered to contain the canonical localization fo
 
 To manually extract strings for Pontoon, run the command `npm run l10n:extract`. If you have a dev server running via `npm start`, this should happen automatically when you change YAML files. In either case, the FTL file should *not* be edited manually.
 
+*Note: any experiments set to `dev: true` will be skipped during extraction so as to not add strings to the translation files as they're likely still actively changing and should not be reviewed by localizers.*
+
 Be sure to include changes to `locales/en-US/experiments.ftl` in your pull requests with changed content. The `npm run l10n:check` command will be run in CircleCI to help ensure any string changes have been picked up - uncommitted string changes will cause the test run to fail.
 
 If a new field is added to the experiment YAML - and it needs to be localized - that field **must** be also added to [the list of `LOCALIZABLE_FIELDS` in `frontend/tasks/util.js`][LOCALIZABLE_FIELDS].
@@ -111,6 +113,19 @@ The order in which the experiment will appear. Lower numbers appear first. Requi
 order: 0
 ```
 
+## `is_featured`
+
+Determines whether the experiment will be featured on the home page.
+
+Featured experiments must include a `video_url` as well.
+
+ Optional.
+
+
+```yaml
+is_featured: false
+```
+
 ## `description`
 
 A short description of the experiment, used for search engines, social media shares, and in the experiment card. Localized, required, HTML not allowed.
@@ -125,10 +140,14 @@ description: >
 
 ## `platform`
 
-A list of platforms on which this experiment is available - one or more of `addon`, `web`, and `mobile`.
+A list of platforms on which this experiment is available - one or more of `addon`, `web`, `ios`, `android`.
+
+When `ios` is included an `ios_url` is also required.
+When `android` is included an `android_url` is also required.
+When `web` is included a `web_url` is also required.
 
 ```yaml
-platform: ['addon', 'mobile']
+platform: ['addon', 'ios']
 ```
 ## `web_url`
 
@@ -137,6 +156,18 @@ If the experiment is on `web` platform, this is the URL to which the details pag
 ```yaml
 web_url: 'https://example.com/some-web-experiment'
 ```
+
+## `ios_url`
+
+Url to the iOS app store page for the app. Required when `platform` includes `ios`.
+
+## `android_url`
+
+Url to the Google Play store page for the app. Required when `platform` includes `android`.
+
+## `basket_msg_id`
+
+The message id send to basket for sending mobile app store link to device
 
 ## `warning`
 
@@ -171,9 +202,11 @@ news_updates:
   -
     slug: min-vid-update-1
     title: My Update title
-    link: https://blog.mozilla.org/testpilot/example
-    created: 2017-06-01T12:00:00Z
-    published: 2017-06-02T12:00:00Z
+    link: 'https://blog.mozilla.org/testpilot/example'
+    created: '2017-06-01T12:00:00Z'
+    published: '2017-06-02T12:00:00Z'
+    image: 'images/link/to/image.jpg' # optional
+    major: true # optional
     dev: false
     content: >
       Example content goes here
@@ -274,6 +307,13 @@ UTM-formatted date indicating the official launch of the experiment. Used to cal
 created: '2016-01-01T00:00:00.000000Z'
 ```
 
+## `Modified`
+
+UTM-formatted date indicating the last major modification to your experiment. This adds a star to your experiment's card.
+
+```yaml
+modified: '2016-01-01T00:00:00.000000Z'
+```
 
 ## `completed`
 
@@ -566,11 +606,13 @@ locale_grantlist:
 
 ## `dev`
 
-A boolean indicating whether this experiment should only appear in a dev environment, i.e. for testing or localization. Required.
+A boolean indicating whether this experiment should only appear in a dev environment, i.e. for testing or active development. Required.
 
 ```yaml
 dev: false
 ```
+
+*Note: experiments set to `dev: true` are intentionally skipped during localization string export.*
 
 ## `testpilot_options`
 
@@ -594,9 +636,10 @@ the experiment updates.
    slug: general-update-1
    title: Example title
    link: https://blog.mozilla.org/testpilot/example
-   created: 2017-06-01T12:00:00Z
-   published: 2017-06-02T12:00:00Z
-   dev: false
+   created: '2017-06-01T12:00:00Z'
+   published: '2017-06-02T12:00:00Z'
+   image: 'images/link/to/image.jpg' # optional
+   major: true # optional
    content: >
      Example content goes here
 ```

@@ -1,95 +1,98 @@
-import cookies from 'js-cookie';
-import config from '../config';
-import addonActions from '../actions/addon';
-import { hasAddonSelector } from '../selectors/addon';
-import { updateExperiment } from '../actions/experiments';
-import InstallHistory from './install-history';
-
-const TESTPILOT_ADDON_ID = '@testpilot-addon';
-const INSTALL_STATE_WATCH_PERIOD = 2000;
-const RESTART_NEEDED = false; // TODO
+import config from "../config";
+import addonActions from "../actions/addon";
+import { updateExperiment } from "../actions/experiments";
+import InstallHistory from "./install-history";
 
 let installHistory;
 let mam = null;
-if (typeof navigator !== 'undefined') {
+if (typeof navigator !== "undefined") {
   mam = navigator.mozAddonManager;
 }
 
-function mozAddonManagerInstall(url) {
+function getAddonId() {
+  return {
+    "example.com:8000": "@testpilot-addon-local",
+    "testpilot.dev.mozaws.net": "@testpilot-addon-dev",
+    "testpilot-l10n.dev.mozaws.net": "@testpilot-addon-l10n",
+    "testpilot.stage.mozaws.net": "@testpilot-addon-stage",
+    "testpilot.firefox.com": "@testpilot-addon"
+  }[window.location.host];
+}
+
+function mozAddonManagerInstall(url, sendToGA, slug = "test-pilot-addon") {
+  const start = url.indexOf("files/") + 6;
+  const end = url.indexOf("@");
+  const experimentTitle = url.substring(start, end);
   return mam.createInstall({ url }).then(install => {
-    return new Promise((resolve, reject) => {
-      install.addEventListener('onInstallEnded', () => resolve());
-      install.addEventListener('onDownloadFailed', () => reject());
-      install.addEventListener('onInstallFailed', () => reject());
-      install.install();
+    return install.install().then(() => {
+      sendToGA("event", {
+        eventCategory: "ExperimentDetailsPage Interactions",
+        eventAction: "Accept From Permission",
+        eventLabel: experimentTitle,
+        dimension11: slug
+      });
+    }).catch((err) => {
+      sendToGA("event", {
+        eventCategory: "ExperimentDetailsPage Interactions",
+        eventAction: "Cancel From Permission",
+        eventLabel: experimentTitle,
+        dimension11: slug
+      });
+      throw err;
     });
   });
 }
 
 export function installAddon(
-  requireRestart,
   sendToGA,
   eventCategory,
-  eventLabel
-) {
+  eventLabel,
+  slug = null) {
   if (!mam) {
-    return false;
+    return Promise.reject();
   }
 
-  const { protocol, hostname, port } = window.location;
-  const path = config.addonPath;
-  const downloadUrl = `${protocol}//${hostname}${port
-    ? ':' + port
-    : ''}${path}`;
+  return mam.getAddonByID(getAddonId())
+    .then(addon => {
+      if (addon) {
+        if (!addon.isEnabled) {
+          return addon.setEnabled(true);
+        }
+        return Promise.resolve();
+      }
+      const { protocol, hostname, port } = window.location;
+      let downloadUrl;
 
-  const gaEvent = {
-    eventCategory: eventCategory,
-    eventAction: 'install button click',
-    eventLabel: eventLabel
-  };
+      if (hostname === "example.com") {
+        downloadUrl = `${protocol}//${hostname}:${port}/${config.addonPath}`;
+      } else {
+        downloadUrl = `https://testpilot.firefox.com/files/${getAddonId()}/latest`;
+      }
 
-  cookies.set('first-run', 'true');
+      const gaEvent = {
+        eventCategory: eventCategory,
+        eventAction: "install button click",
+        eventLabel: eventLabel,
+        dimension11: slug
+      };
 
-  return mozAddonManagerInstall(downloadUrl).then(() => {
-    gaEvent.dimension7 = RESTART_NEEDED ? 'restart required' : 'no restart';
-    sendToGA('event', gaEvent);
-    if (RESTART_NEEDED) {
-      requireRestart();
-    }
-  });
+      return mozAddonManagerInstall(downloadUrl, sendToGA).then(() => {
+        gaEvent.dimension7 = "no restart";
+        sendToGA("event", gaEvent);
+      });
+    });
 }
 
 export function uninstallAddon() {
   if (!mam) {
-    return;
+    return Promise.reject();
   }
 
-  mam.getAddonByID(TESTPILOT_ADDON_ID).then(addon => {
+  return mam.getAddonByID(getAddonId()).then(addon => {
     if (addon) {
       addon.uninstall();
     }
   });
-}
-
-function pollMainAddonAvailability(store) {
-  const finish = status => {
-    const hasAddon = hasAddonSelector(store.getState());
-    if (status !== hasAddon) {
-      if (status === false && hasAddon === true) {
-        window.location.reload();
-      } else {
-        store.dispatch(addonActions.setHasAddon(status));
-      }
-    }
-    setTimeout(
-      () => pollMainAddonAvailability(store),
-      INSTALL_STATE_WATCH_PERIOD
-    );
-  };
-  mam
-    .getAddonByID(TESTPILOT_ADDON_ID)
-    .then(addon => finish(!!addon))
-    .catch(() => finish(false));
 }
 
 export function setupAddonConnection(store) {
@@ -97,47 +100,60 @@ export function setupAddonConnection(store) {
     return;
   }
 
-  pollMainAddonAvailability(store);
+  function experimentById(id) {
+    const { experiments } = store.getState();
+    return experiments.data.filter(x => x.addon_id === id)[0];
+  }
 
-  mam.addEventListener('onEnabled', addon => {
-    if (addon) {
-      const { experiments } = store.getState();
-      const i = experiments.data.map(x => x.addon_id).indexOf(addon.id);
-      if (i > -1) {
-        const x = experiments.data[i];
-        store.dispatch(addonActions.enableExperiment(x));
-        store.dispatch(
-          updateExperiment(x.addon_id, {
-            inProgress: false,
-            error: false
-          })
-        );
-      }
+  mam.addEventListener("onEnabled", addon => {
+    if (!addon) { return false; }
+    if (addon.id === getAddonId()) {
+      return store.dispatch(addonActions.setHasAddon(true));
     }
+
+    const x = experimentById(addon.id);
+    if (x) {
+      store.dispatch(addonActions.enableExperiment(x));
+      store.dispatch(
+        updateExperiment(x.addon_id, {
+          inProgress: false,
+          error: false
+        })
+      );
+    }
+    return true;
   });
+
+  mam.addEventListener("onInstalled", addon => {
+    if (addon && addon.id === getAddonId()) {
+      return store.dispatch(addonActions.txpInstalled());
+    }
+    installHistory.setActive(addon.id);
+    return true;
+  });
+
   function onDisabled(addon) {
-    if (addon) {
-      const { experiments } = store.getState();
-      const i = experiments.data.map(x => x.addon_id).indexOf(addon.id);
-      if (i > -1) {
-        const x = experiments.data[i];
-        store.dispatch(addonActions.disableExperiment(x));
-        store.dispatch(
-          updateExperiment(x.addon_id, {
-            inProgress: false,
-            error: false
-          })
-        );
-      }
+    if (!addon) { return false; }
+    if (addon.id === getAddonId()) {
+      return store.dispatch(addonActions.setHasAddon(false));
+    }
+    const x = experimentById(addon.id);
+    if (x) {
+      store.dispatch(addonActions.disableExperiment(x));
+      store.dispatch(
+        updateExperiment(x.addon_id, {
+          inProgress: false,
+          error: false
+        })
+      );
 
       installHistory.setInactive(addon.id);
     }
+    return true;
   }
-  mam.addEventListener('onDisabled', onDisabled);
-  mam.addEventListener('onUninstalled', onDisabled);
-  mam.addEventListener('onInstalled', addon =>
-    installHistory.setActive(addon.id)
-  );
+
+  mam.addEventListener("onDisabled", onDisabled);
+  mam.addEventListener("onUninstalled", onDisabled);
   /*
   mam.addEventListener('onEnabling', (addon, restart) => {
   });
@@ -153,93 +169,108 @@ export function setupAddonConnection(store) {
   });
   mam.addEventListener('onPropertyChanged', (addon, p) => {
   });
-*/
-  getExperimentAddons(store.getState().experiments.data).then(addons => {
-    const enabled = addons.filter(a => a && a.isEnabled);
-    const installed = {};
-    enabled.forEach(a => {
-      installed[a.id] = {
-        // TODO see which of these are required
-        active: true,
-        addon_id: a.id
-        // created:
-        // html_url:
-        // installDate:
-        // thumbnail:
-        // title:
-      };
-    });
-    store.dispatch(addonActions.setInstalled(installed));
-
-    // populate install history for initial load
-    if (!installHistory) {
-      const installations = Object.assign({}, installed);
-      store.getState().experiments.data.forEach(e => {
-        if (!installations[e.addon_id]) {
-          installations[e.addon_id] = {
-            active: false,
-            addon_id: e.addon_id
-          };
-        }
+  */
+  mam.getAddonByID(getAddonId())
+    .then(addon => {
+      store.dispatch(addonActions.setHasAddon(!!addon && addon.isEnabled));
+    })
+    .then(() => getExperimentAddons(store.getState().experiments.data))
+    .then(addons => {
+      const enabled = addons.filter(a => a && a.isEnabled);
+      const installed = {};
+      enabled.forEach(a => {
+        installed[a.id] = {
+          active: true,
+          addon_id: a.id
+        };
       });
-      installHistory = new InstallHistory(installations);
-    }
-  });
+      store.dispatch(addonActions.setInstalled(installed));
+
+      // populate install history for initial load
+      if (!installHistory) {
+        const installations = Object.assign({}, installed);
+        store.getState().experiments.data.forEach(e => {
+          if (!installations[e.addon_id]) {
+            installations[e.addon_id] = {
+              active: false,
+              addon_id: e.addon_id
+            };
+          }
+        });
+        installHistory = new InstallHistory(installations);
+      }
+    });
 }
 
-export function enableExperiment(dispatch, experiment) {
+export function enableExperiment(dispatch, experiment, sendToGA, eventCategory, eventLabel) {
   if (!mam) {
-    return;
+    return Promise.reject(new Error("no mozAddonManager"));
   }
 
-  mam
-    .getAddonByID(experiment.addon_id)
-    .then(
-      addon => {
-        if (addon) {
-          // already installed
-          if (!addon.isEnabled) {
-            return addon.setEnabled(true);
-          }
-          // already enabled
-          return Promise.resolve();
-        }
-        return mozAddonManagerInstall(experiment.xpi_url);
-      } // TODO error case
-    )
-    .then(
-      () => {
-        dispatch(addonActions.enableExperiment(experiment));
-        dispatch(
-          updateExperiment(experiment.addon_id, {
-            inProgress: false,
-            error: false
-          })
-        );
-      },
-      () => {
-        dispatch(addonActions.disableExperiment(experiment));
-        dispatch(
-          updateExperiment(experiment.addon_id, {
-            inProgress: false,
-            error: true
-          })
-        );
-      }
-    );
   dispatch(
     updateExperiment(experiment.addon_id, {
       inProgress: true
     })
   );
+  return installAddon(sendToGA, eventCategory, eventLabel, experiment.slug)
+    .then(
+      () => mam.getAddonByID(experiment.addon_id)
+        .then(
+          addon => {
+            if (addon) {
+              // already installed
+              if (!addon.isEnabled) {
+                return addon.setEnabled(true);
+              }
+              // already enabled
+              return Promise.resolve();
+            }
+            return mozAddonManagerInstall(experiment.xpi_url, sendToGA, experiment.slug)
+              .then(() => dispatch(addonActions.experimentInstalled(experiment)));
+          }
+        )
+        .then(
+          () => {
+            dispatch(addonActions.enableExperiment(experiment));
+            dispatch(
+              updateExperiment(experiment.addon_id, {
+                inProgress: false,
+                error: false
+              })
+            );
+          },
+          err => {
+            dispatch(addonActions.disableExperiment(experiment));
+            dispatch(
+              updateExperiment(experiment.addon_id, {
+                inProgress: false,
+                error: true
+              })
+            );
+            throw err;
+          }
+        ),
+      err => {
+        dispatch(
+          updateExperiment(experiment.addon_id, {
+            inProgress: false
+          })
+        );
+      });
 }
 
 export function disableExperiment(dispatch, experiment) {
   if (!mam) {
-    return;
+    return Promise.reject("no mozAddonManager");
   }
 
-  mam
+  dispatch(
+    updateExperiment(experiment.addon_id, {
+      inProgress: true
+    })
+  );
+
+  return mam
     .getAddonByID(experiment.addon_id)
     .then(
       addon => {
@@ -258,11 +289,6 @@ export function disableExperiment(dispatch, experiment) {
         })
       );
     });
-  dispatch(
-    updateExperiment(experiment.addon_id, {
-      inProgress: true
-    })
-  );
 }
 
 function getExperimentAddons(experiments) {

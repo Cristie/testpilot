@@ -2,11 +2,11 @@
 
 # Development Quickstart
 
-Test Pilot uses Node.js [v6.x LTS](https://nodejs.org/dist/latest-v6.x/) for
+Test Pilot uses Node.js [v8.9.4](https://nodejs.org/dist/latest-v8.x/) for
 development. You may be able to get by using
 [the most current release](https://nodejs.org/en/download/current/), but
 earlier versions will definitely result in error messages and problems. [Node
-Version Manager](https://github.com/creationix/nvm/blob/master/README.markdown)
+Version Manager](https://github.com/creationix/nvm/blob/master/README.md)
 might come in handy for installing the right version of Node.js.
 
 ## First Things First
@@ -14,6 +14,10 @@ might come in handy for installing the right version of Node.js.
 Make sure you clone the Test Pilot repo:
 
   `git clone https://github.com/mozilla/testpilot.git`
+  
+Windows users will want to enable symlinks:
+
+  `git clone -c core.symlinks=true https://github.com/mozilla/testpilot.git`
 
 ## For Linux & OS X hosts
 
@@ -23,17 +27,18 @@ here are some shell commands to get you started on Linux & OS X:
 ```bash
 cd testpilot
 
+# Install project dependencies
+npm install
+
 # Set up add-on environment and build an unsigned package
 cd addon
 npm install
 npm run package
 
 # Set up frontend web site environment
-cd ..
-npm install
-
 # Add hostname alias to /etc/hosts and start up dev webserver
 echo '127.0.0.1 example.com' | sudo tee -a /etc/hosts
+cd ..
 npm start
 ```
 
@@ -48,32 +53,12 @@ you should be on your way:
 
 1. Install [Firefox Developer Edition][devedition].
 
-1. Install the [DevPrefs][] add-on in Firefox Developer Edition.
-
 1. Configure your browser to use your local Test Pilot server:
 
    1. Type `about:config` in the URL bar, acknowledge the warning that appears.
 
-   1. Right click the list of preferences to summon a menu, pick New > String
-      to create a new preference.
-
-   1. Enter `testpilot.env` for the name.
-
-   1. Enter `local` for the value.
-
    1. Right click the list of preferences to summon a menu, pick New > Boolean
       to create a new preference.
-
-   1. Enter `extensions.install.requireBuiltInCerts` for the name.
-
-   1. Enter `false` for the value.
-
-   1. Right click the list of preferences to summon a menu, pick New > Boolean
-      to create a new preference.
-
-   1. Enter `xpinstall.signatures.required` for the name.
-
-   1. Enter `false` for the value.
 
    1. Enter `extensions.webapi.testing` for the name.
 
@@ -82,6 +67,7 @@ you should be on your way:
 
 1. View your local site in Firefox Developer Edition at https://example.com:8000/
 
+[aboutconfig]: https://support.mozilla.org/en-US/kb/about-config-editor-firefox
 [devedition]: https://www.mozilla.org/en-US/firefox/developer/
 [devprefs]: https://addons.mozilla.org/en-US/firefox/addon/devprefs/
 
@@ -96,15 +82,15 @@ After installing Node.js for Windows, run these commands to get started:
 
 ```cmd
 cd testpilot
+npm install
 
 :: Set up add-on environment and build an unsigned package
 cd addon
 npm install
-npm run package-win
+npm run package
 
 :: Set up frontend web site environment
 cd ..
-npm install
 ```
 
 Now, open a second command prompt window, this time with admin privileges and run this:
@@ -117,7 +103,7 @@ echo 127.0.0.1 example.com >> %WINDIR%\System32\Drivers\Etc\Hosts
 Go back to the previous command prompt window and run
 
 ```cmd
-USE_HTTPS=1 npm start
+npm start
 ```
 
 Follow the remaining instructions from **Linux & OS X** section and you're all set.

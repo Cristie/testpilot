@@ -4,9 +4,10 @@ This document details the process we use to deploy Test Pilot to our stage and p
 
 ## Overview of schedule ##
 
-(you can read more below)
-
-- Thursday at 1pm PST the train is cut, all code is in.
+- Thursday (a week before we freeze) merge new strings to the `l10n` branch so
+  localizers have a week to get any new strings in.  Hold off committing any
+  major new strings at this point.
+- Thursday (a week after step 1) at 1pm PST the train is cut, all code is in.
 - Thursday at 4pm PST we tag and push stage, and send email out.
 - Friday is a buffer day.
 - Monday at regular stand-up we review anything that Softvision found and fix it.
@@ -14,7 +15,23 @@ This document details the process we use to deploy Test Pilot to our stage and p
 
 ## Softvision ##
 
-Softvision is our embedded QA team. Their main functions are to write test plans and verify deployments.
+Softvision is our embedded QA team. They maintain the test plans, verify bugs
+as they are closed, and ensure deployments don't push new bugs into the wild.
+
+## Merge master to l10n ##
+
+We try to front load any patches that have major string changes into the first
+week of the sprint so we can give localizers time to work on them.  When it's
+time to merge `master` to `l10n` follow the steps below.
+
+```
+git checkout master
+git pull mozilla master
+git checkout -b l10n mozilla/l10n  # If you already have an l10n branch this can just be: git checkout l10n
+git pull mozilla l10n
+git merge master
+git push mozilla l10n
+```
 
 ## Team Notification ##
 
@@ -22,7 +39,7 @@ During the checkin before the end of the [current milestone](https://github.com/
 
 Note: we auto deploy the master branch to our *development environment*: [https://testpilot.dev.mozaws.net](https://testpilot.dev.mozaws.net)
 
-## Merge l10n ##
+## Merge l10n to master ##
 
 Before tagging the release, merge the l10n branch into the master branch. These commands assume the remote named `mozilla` points at the mozilla repository on github.
 
@@ -45,9 +62,9 @@ Please be as detailed as possible in the release notes. Examples - [2016-07-05](
 
 This will happen on Thursday at the end of sprint.
 
-1. `git checkout stage-static`  (No luck?  Try `get fetch mozilla` and `git checkout -b stage-static mozilla/stage-static` -- both commands assume your remote is named `mozilla`)
+1. `git checkout stage`  (No luck?  Try `git fetch mozilla` and `git checkout -b stage mozilla/stage` -- both commands assume your remote is named `mozilla`)
 2. `git reset --hard YYYY-MM-DD`  # whatever your tag name is
-3. `git push mozilla stage-static -f`  # Replace `mozilla` with whatever you name your upstream.  The `-f` is only necessary if we cherry-picked patches when we pushed last time.
+3. `git push mozilla stage -f`  # Replace `mozilla` with whatever you name your upstream.  The `-f` is only necessary if we cherry-picked patches when we pushed last time.
 
 Notifications of successful deployment will appear on IRC.
 
@@ -77,9 +94,9 @@ On the following Monday, during our checkin, Softvision will give us an update o
 
 Once we are comfortable that the site has been tested:
 
-1. `git checkout production-static`
+1. `git checkout production`
 2. `git reset --hard YYYY-MM-DD`  # whatever your tag name is
-3. `git push mozilla production-static -f`  # Replace `mozilla` with whatever you name your upstream.  The `-f` is only necessary if we cherry-picked patches when we pushed last time.
+3. `git push mozilla production -f`  # Replace `mozilla` with whatever you name your upstream.  The `-f` is only necessary if we cherry-picked patches when we pushed last time.
 
 Notifications of successful deployment will appear on IRC.
 
@@ -118,6 +135,13 @@ NODE_ENV=production ENABLE_PONTOON=0 npm run static
 
 After all the above commands, you should have an optimized static build of the
 site in the `dist` directory.
+
+If you'd like to preview this static build of the site, you can start up a
+local web server pointed at the `dist` directory with this npm script:
+
+```
+npm run server:dist
+```
 
 The `NODE_ENV` variable in the last command can be set to `development` to
 produce a build that's easier to debug, at the expense of JS bundle size and

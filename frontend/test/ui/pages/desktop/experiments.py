@@ -6,12 +6,13 @@ from pages.desktop.base import Base
 
 class Experiments(Base):
     """Represents the experiments page"""
+    URL_TEMPLATE = '/experiments/'
 
     _experiment_locator = (By.CLASS_NAME, 'experiment-summary')
 
-    @property
-    def welcome_popup(self):
-        return self.WelcomePopup(self)
+    def wait_for_page_to_load(self):
+        self.wait.until(lambda _: self.list is not None)
+        return self
 
     @property
     def list(self):
@@ -37,18 +38,6 @@ class Experiments(Base):
             else:
                 continue
         raise AttributeError('Experiment: {0}, not found.'.format(experiment))
-
-    class WelcomePopup(Region):
-        _root_locator = (By.ID, 'first-page')
-        _close_button_locator = (By.CSS_SELECTOR, '.modal-cancel')
-        _popup_locator_title = (By.CSS_SELECTOR, '.modal-header-wrapper h3')
-
-        def wait_for_region_to_load(self):
-            self.wait.until(lambda _: 'Welcome to Test Pilot!' in self.title)
-
-        def close(self):
-            """Close welcome popup using the close button."""
-            self.find_element(*self._close_button_locator).click()
 
         @property
         def title(self):

@@ -1,12 +1,14 @@
-import { Localized } from 'fluent-react/compat';
-import React from 'react';
+import { Localized } from "fluent-react/compat";
+import React from "react";
 
-import './index.scss';
+import "./index.scss";
+
+import iconInfo from "../../../images/info-16.svg";
 
 class GraduatedNoticeButton extends React.Component {
   render() {
     return <Localized id="experimentGradReportButton">
-      <a className="graduated-notice-button" href={this.props.graduation_url}>
+      <a className="graduated-notice-button button default" href={this.props.graduation_url}>
         Graduation Report
       </a>
     </Localized>;
@@ -30,7 +32,7 @@ export default class GraduatedNotice extends React.Component {
       </Localized>;
     }
     return <div className="graduated-notice">
-      <img className="graduated-notice-image" src="/static/images/info-16.svg" width="40" height="40"/>
+      <img className="graduated-notice-image" src={iconInfo} width="40" height="40"/>
       <div className="graduated-notice-text">
         <Localized id="experimentGradReportPendingTitle">
           <h1>
@@ -39,7 +41,7 @@ export default class GraduatedNotice extends React.Component {
         </Localized>
         {graduatedText}
       </div>
-        {this.props.graduation_url ? <GraduatedNoticeButton graduation_url={this.props.graduation_url} /> : null}
+      {this.props.graduation_url ? <GraduatedNoticeButton graduation_url={this.props.graduation_url} /> : null}
     </div>;
   }
 }

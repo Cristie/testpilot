@@ -1,42 +1,54 @@
+@import '~photon-colors/colors.scss';
+@import '../../../styles/_utils';
+
 .graduated-notice {
-  align-items: center;
-  border-radius: 5px;
-  border: 2px dotted #f5a623;
-  display: flex;
-  padding: 32px 28px;
+  @include respond-to('medium') {
+    @include flex-container(column, center, flex-start);
+  }
+
+  @include flex-container(row, center, center);
+  border: 2px dashed $orange-50;
+  border-radius: 2px;
   margin-bottom: 32px;
+  padding: 16px;
 }
 
 .graduated-notice-image {
-  flex: 0 0 40px;
-  max-width: 40px;
-  margin-right: 28px;
+  @include respond-to('medium') {
+    display: none;
+  }
+
+  flex: 0 0 20px;
+  margin-right: 12px;
+  max-width: 20px;
 }
 
 .graduated-notice-text {
+  @include respond-to('medium') {
+    margin: 0 0 $grid-unit;
+  }
+
   flex: 1;
   margin-right: 28px;
 }
 
 .graduated-notice-text h1 {
-  font-size: 20px;
-  margin: 0 0 5px;
+  font-size: 15px;
+  font-weight: $weight-semi-bold;
+  line-height: 18px;
+  margin: 0;
 }
 
 .graduated-notice-text p {
-  font-size: 18px;
+  font-size: 13px;
+  line-height: 18px;
   margin: 0;
   padding: 0;
 }
 
 .graduated-notice-button {
-  align-items: center;
-  background-color: rgb(9, 150, 248);
-  border-radius: 3px;
-  color: #ffffff !important;
-  display: flex;
-  font-size: 22px;
-  height: 62px;
-  padding: 0 18px;
+  @include flex-container(row, center, center);
+  font-size: 15px;
+  padding: 0 32px;
   white-space: nowrap;
 }

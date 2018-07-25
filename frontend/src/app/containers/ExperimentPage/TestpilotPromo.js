@@ -1,20 +1,20 @@
 // @flow
 
-import React from 'react';
-import { Localized } from 'fluent-react/compat';
+import React from "react";
+import { Localized } from "fluent-react/compat";
 
-import LayoutWrapper from '../../components/LayoutWrapper';
-import Banner from '../../components/Banner';
-import Copter from '../../components/Copter';
-import MainInstallButton from '../../components/MainInstallButton';
+import LayoutWrapper from "../../components/LayoutWrapper";
+import Banner from "../../components/Banner";
+import Copter from "../../components/Copter";
+import MainInstallButton from "../../components/MainInstallButton";
 
-import type { TestpilotPromoProps } from './types';
+import type { TestpilotPromoProps } from "./types";
 
 export default class TestpilotPromo extends React.Component {
   props: TestpilotPromoProps;
 
   render() {
-    const { hasAddon, graduated, experiment, installCallback } = this.props;
+    const { hasAddon, graduated, experiment } = this.props;
 
     const { title, web_url } = experiment;
     if (hasAddon === null || hasAddon || graduated || web_url) {
@@ -39,7 +39,6 @@ export default class TestpilotPromo extends React.Component {
               <MainInstallButton
                 {...this.props}
                 experimentTitle={title}
-                installCallback={installCallback}
               />
             </div>
             <Copter />

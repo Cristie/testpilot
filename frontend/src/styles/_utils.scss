@@ -1,0 +1,197 @@
+// These are black and white
+$black: #000;
+$white: #fff;
+$grey-90: #0c0c0d;
+
+//These are handy transparencies
+$transparent-black-05: rgba($black, .05);
+$transparent-black-1: rgba($black, .1);
+$transparent-black-15: rgba($black, .15);
+$transparent-black-2: rgba($black, .2);
+$transparent-black-3: rgba($black, .3);
+$transparent-black-34: rgba($black, .34);
+$transparent-black-4: rgba($black, .4);
+$transparent-black-5: rgba($black, .5);
+$transparent-black-6: rgba($black, .6);
+$transparent-black-7: rgba($black, .7);
+$transparent-black-8: rgba($black, .8);
+$transparent-black-9: rgba($black, .9);
+$transparent-white-02: rgba($white, .02);
+$transparent-white-05: rgba($white, .05);
+$transparent-white-08: rgba($white, .08);
+$transparent-white-1: rgba($white, .1);
+$transparent-white-2: rgba($white, .2);
+$transparent-white-3: rgba($white, .3);
+$transparent-white-4: rgba($white, .4);
+$transparent-white-5: rgba($white, .5);
+$transparent-white-6: rgba($white, .6);
+$transparent-white-7: rgba($white, .7);
+$transparent-white-8: rgba($white, .8);
+$transparent-white-9: rgba($white, .9);
+$transparent-white-96: rgba($white, .96);
+$transparent-grey-10: rgba($grey-90, .1);
+$transparent-grey-20: rgba($grey-90, .2);
+$transparent-grey-30: rgba($grey-90, .3);
+
+// common font-weight mappings
+// https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#Common_weight_name_mapping
+$weight-thin: 100;
+$weight-extra-light: 200;
+$weight-light: 300;
+$weight-normal: 400;
+$weight-medium: 500;
+$weight-semi-bold: 600;
+$weight-bold: 700;
+$weight-extra-bold: 800;
+$weight-heavy: 900;
+
+
+// These are for corners
+$large-border-radius: 5px;
+$medium-border-radius: 4px;
+$small-border-radius: 3px;
+$circle-border-radius: 50%;
+
+// These are base units for fonts and spacing
+$grid-unit: 20px;
+$font-unit: 12px;
+$line-unit: 18px;
+
+// Error status-bar reds
+$error-background: #ffe900;
+$error-border: #d7b600;
+
+// "Just {Launched,Updated}" blue
+$bright-blue: #1e98f5;
+// updates blues
+$dark-over-darkest-blue: #163875;
+$dark-over-darkest-blue-highlight: #0a75ba;
+
+// End-of-life (eol) oranges
+$eol-dark-orange: #f46323;
+$eol-orange: #ff9300;
+$eol-light-orange: rgba($eol-orange, .25);
+
+// no-support-red
+$no-support-red: #D70022;
+
+// flexing container
+@mixin flex-container($direction, $justification: flex-start, $alignment: stretch, $wrap: nowrap) {
+  display: flex;
+  @if $alignment != 'stretch' {
+    align-items: $alignment;
+  }
+  @if $direction != 'row' {
+    flex-direction: $direction;
+  }
+  @if $justification != 'flex-start' {
+    justify-content: $justification;
+  }
+  @if $wrap != 'nowrap' {
+    flex-wrap: $wrap;
+  }
+}
+
+// Breakpoint controls
+// Note their use from JavaScript in frontend/src/app/containers/App/index.js:getBreakpoint
+$breakpoints: (
+  big: '(min-width: 1020px)',
+  medium: '(max-width: 1019px)',
+  small: '(max-width: 768px)',
+  not-small: '(min-width: 769px)',
+  mobile: '(max-width: 520px)'
+);
+
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media #{map-get($breakpoints, $breakpoint)} {
+      @content;
+    }
+  } @else {
+    @warn 'Unfortunately, no value could be retrieved from `#{$breakpoint}`. '
+    + 'Please make sure it is defined in `$breakpoints` map.';
+  }
+}
+
+@mixin show-on-small($display: block) {
+  @include respond-to('not-small') {
+    display: none;
+  }
+
+  @include respond-to('small') {
+    display: $display;
+  }
+}
+
+@mixin hide-on-small($display: block) {
+  @include respond-to('not-small') {
+    display: $display;
+  }
+
+  @include respond-to('small') {
+    display: none;
+  }
+}
+
+@mixin status-flags($left: 0, $top: 0, $mb: 0, $position: absolute) {
+  $tab-border-color: rgb(58, 133, 36);
+
+  .tab {
+    border-color: $tab-border-color;
+    border-radius: $small-border-radius;
+    border-style: solid;
+    border-width: 1px;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    left: $left;
+    line-height: $grid-unit * 1.2;
+    margin-bottom: $mb;
+    outline: none;
+    padding: 1px 7px;
+    position: $position;
+    text-align: center;
+    text-decoration: none;
+    top: $top;
+    transition: background 150ms;
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  .enabled-tab {
+    background: $green-60;
+    color: $white;
+  }
+
+  .enabled-tab::before {
+    background-image: url('../../../images/check.svg');
+    background-position: center 2px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    content: '';
+    display: inline-block;
+    height: 14px;
+    margin-right: 5px;
+    width: 14px;
+  }
+
+  .just-launched-tab,
+  .just-updated-tab {
+    background: $blue-50;
+    border-color: $blue-60;
+    color: $white;
+  }
+
+  .just-launched-tab::before,
+  .just-updated-tab::before {
+    background-image: url('../../../images/star.svg');
+    background-repeat: no-repeat;
+    content: '';
+    display: inline-block;
+    height: 12px;
+    margin-right: 5px;
+    position: relative;
+    top: 2px;
+    width: 12px;
+  }
+}

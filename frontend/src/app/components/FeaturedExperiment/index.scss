@@ -1,0 +1,330 @@
+ @import '~photon-colors/colors.scss';
+@import '../../../styles/_utils';
+
+.featured-experiment {
+  @include respond-to('small') {
+    @include flex-container(column, center, stretch, nowrap);
+
+    margin: 10px 0;
+
+    .featured-experiment__header {
+      order: 1;
+    }
+
+    .featured-experiment__status {
+      order: 2;
+    }
+
+    .featured-experiment__video {
+      order: 3;
+    }
+
+    .featured-experiment__description {
+      order: 4;
+    }
+
+    .featured-experiment__actions {
+      order: 6;
+    }
+
+    .featured-experiment__details {
+      order: 5;
+    }
+  }
+
+  @include respond-to('not-small') {
+    @include flex-container(column, flex-start, flex-start, wrap);
+    max-height: 500px;
+    padding: 10px;
+  }
+
+  .featured-experiment__header,
+  .featured-experiment__status,
+  .featured-experiment__description,
+  .featured-experiment__actions,
+  .featured-experiment__details {
+    @include respond-to('medium') {
+      margin-right: 30px;
+      max-width: 340px;
+      width: 340px;
+    }
+
+    @include respond-to('small') {
+      margin: 0 auto;
+      max-width: 100%;
+    }
+
+    margin: 0 60px 0 0;
+    width: 420px;
+  }
+
+  .featured-experiment__header {
+    @include respond-to('small') {
+      @include flex-container(column, center, center);
+      margin-bottom: 16px;
+    }
+
+    @include respond-to('not-small') {
+      .featured-experiment__status  {
+        display: none;
+      }
+    }
+
+    display: flex;
+    margin-bottom: 30px;
+
+    .experiment-icon-wrapper {
+      @include respond-to('small') {
+        margin: 0 0 20px;
+      }
+
+      border-radius: 50%;
+      box-shadow: 0 0 5px $transparent-black-05;
+      flex: 0 0 64px;
+      height: 64px;
+      margin: 0 15px 0 0;
+      width: 64px;
+    }
+
+    .experiment-icon {
+      background-position: center center;
+      background-size: 32px auto;
+      height: 54px;
+      width: 54px;
+    }
+
+    .experiment-platform {
+      color: $white;
+      font-size: 16px;
+      margin-top: 6px;
+      white-space: nowrap;
+
+      .platform-icon,
+      .platform-copy {
+        margin: 0 8px 0 0;
+        opacity: 1;
+      }
+
+      .platform-icon-addon {
+        background-image: url('../../../images/experiment-type-addon-white.svg');
+      }
+
+      .platform-icon-web {
+        background-image: url('../../../images/experiment-type-web-white.svg');
+      }
+
+      .platform-icon-ios,
+      .platform-icon-android {
+        background-image: url('../../../images/experiment-type-mobile-white.svg');
+      }
+    }
+  }
+
+  .featured-experiment__title-wrapper {
+    @include respond-to('small') {
+      @include flex-container(column, center, center);
+    }
+
+    @include flex-container(column, space-around, flex-start);
+
+    .featured-experiment__title {
+      @include respond-to('small') {
+        margin: 10px 0 5px;
+      }
+
+      font-size: 33px;
+      font-weight: 300;
+      margin: 0 0 7px;
+      text-align: left;
+    }
+
+    .featured-experiment__subtitle {
+      font-size: 17px;
+      font-weight: 300;
+      margin: 0;
+    }
+
+    .featured-experiment__info {
+      display: flex;
+    }
+  }
+
+  .featured-experiment__description {
+    @include respond-to('small') {
+      margin: 20px auto 0;
+      text-align: center;
+    }
+
+    @include respond-to('medium') {
+      font-size: 16px;
+      line-height: 26px;
+    }
+
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 30px;
+    margin: 0 0 16px;
+    text-align: left;
+  }
+
+  .featured-experiment__details {
+    color: $blue-40;
+    font-size: 14px;
+    text-decoration: underline;
+  }
+
+  .featured-experiment__enabled-buttons {
+    @include respond-to('small') {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    width: 352px;
+
+    .button {
+      @include respond-to('small') {
+        margin: 0 auto 20px;
+        width: 100%;
+      }
+
+      font-size: 18px;
+      height: 48px;
+      padding: 12px;
+      width: 160px;
+    }
+  }
+
+  .main-install__button,
+  .main-install__download {
+    @include respond-to('medium') {
+      width: 320px;
+    }
+
+    @include respond-to('small') {
+      margin-bottom: 20px;
+      max-width: 320px;
+      width: 100%;
+    }
+
+    height: 84px;
+    width: 352px;
+
+    img {
+      height: 24px;
+      width: auto;
+      padding-right: 10px;
+    }
+  }
+
+  .main-install__spacer {
+    height: 25px;
+  }
+
+  .main-install__available {
+    font-size: $font-unit * 1.1;
+  }
+
+  .main-install__legal {
+    @include respond-to('small') {
+      margin: 0;
+      text-align: center;
+      width: 100%;
+    }
+
+    max-width: 352px;
+    text-align: left;
+    width: 352px;
+
+    a {
+      margin: 0;
+      padding: 0;
+      text-decoration: underline;
+    }
+  }
+
+  .featured-experiment__subtitle {
+    border-left: 1px solid $white;
+    padding-left: 6px;
+  }
+
+  .featured-experiment__status {
+    @include status-flags(0, 0, 20px, relative);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .featured-experiment__actions {
+    .button.mobile {
+      @include respond-to('small') {
+        margin: 20px auto 0;
+      }
+
+      border: 0;
+      margin: 0;
+
+      img {
+        height: 60px;
+        width: auto;
+      }
+    }
+  }
+
+  .featured-experiment__video {
+    @include flex-container(column, flex-start, stretch);
+
+    @include respond-to('not-small') {
+      margin-top: 40px;
+    }
+
+    iframe {
+      @include respond-to('medium') {
+        height: 300px;
+        width: 380px;
+      }
+
+      @include respond-to('small') {
+        height: 260px;
+        margin: 0 -6%;
+        width: 112%;
+      }
+
+      height: 320px;
+      width: 500px;
+    }
+  }
+
+  .legal-modal {
+
+    font-size: 15px;
+    max-width: 460px;
+
+    h3 {
+      font-size: 22px;
+      font-weight: 300;
+    }
+
+    .measurements {
+      @include respond-to('small') {
+        padding: 20px;
+        text-align: left;
+      }
+
+      padding: 20px 40px;
+
+      ul {
+        background: $grey-20;
+        list-style-position: inside;
+        padding: 20px;
+      }
+
+      a {
+        color: $blue-60;
+      }
+    }
+  }
+}

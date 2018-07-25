@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import requests
 from requests.packages.urllib3.util.retry import Retry
@@ -15,12 +17,19 @@ def capabilities(capabilities):
 def firefox_options(firefox_options):
     firefox_options.set_preference(
         'extensions.install.requireBuiltInCerts', False)
+    firefox_options.set_preference('ui.popup.disable_autohide', True)
     firefox_options.set_preference('xpinstall.signatures.required', False)
     firefox_options.set_preference('extensions.webapi.testing', True)
-    firefox_options.set_preference('testpilot.env', 'local')
+    firefox_options.set_preference('extensions.legacy.enabled', True)
     firefox_options.add_argument('-foreground')
     firefox_options.log.level = 'trace'
     return firefox_options
+
+
+@pytest.fixture
+def install_testpilot(selenium):
+    addon = os.path.abspath('addon/addon.xpi')
+    selenium.install_addon(addon, temporary=True)
 
 
 @pytest.fixture(scope='session', autouse=True)

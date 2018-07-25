@@ -1,0 +1,65 @@
+@import '~photon-colors/colors.scss';
+@import '../../../styles/_utils';
+
+.experiment-platform {
+  @include flex-container(row, flex-start, center);
+  color: $grey-50;
+  font-family: 'Fira Sans Book', sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 16px;
+  margin: 0;
+  width: 100%;
+
+  .platform-copy,
+  .platform-icon {
+    margin-bottom: 5px;
+
+    .details-header & {
+      margin-bottom: 0;
+    }
+  }
+
+  .details-header & {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .platform-copy {
+    align-items: center;
+    display: flex;
+    flex: 1 0;
+    order: 4;
+  }
+
+  .platform-icon {
+    background-position: left center;
+    background-repeat: no-repeat;
+    background-size: auto 16px;
+    flex: 0 0 16px;
+    height: 16px;
+    margin-right: 6px;
+    opacity: .5;
+  }
+
+  .platform-icon-web {
+    background-image: url('../../../images/experiment-type-web.svg');
+    order: 3;
+  }
+
+  .platform-icon-addon {
+    background-image: url('../../../images/experiment-type-addon.svg');
+    order: 2;
+  }
+
+  .platform-icon-ios,
+  .platform-icon-android {
+    background-image: url('../../../images/experiment-type-mobile.svg');
+    order: 1;
+  }
+
+  // don't show two mobile icons if we support both platforms
+  .platform-icon-android + .platform-icon-ios {
+    display: none;
+  }
+}

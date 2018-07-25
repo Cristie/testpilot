@@ -1,35 +1,83 @@
 /* global ga */
-import { MessageContext } from 'fluent/compat';
-import { negotiateLanguages } from 'fluent-langneg/compat';
-import { LocalizationProvider } from 'fluent-react/compat';
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+/*
+This is the toplevel container for Test Pilot. It does too much and it would
+be nice to move parts of this into other modules.
 
-import cookies from 'js-cookie';
-import Clipboard from 'clipboard';
+When the page is rendered, it:
 
-import likelySubtagsData from 'cldr-core/supplemental/likelySubtags.json';
+- starts by rendering Loading
+- Checks to see if restartRequired (see below)
+- Sets the title using Hemlet (but doesn't localize it -- this code is
+  redundant with the title element in the static html and should probably be
+  removed)
+- Wraps children of App with LocalizationProvider, allowing use of fluent-react
+  for localization
 
-import { getInstalled, isExperimentEnabled, isAfterCompletedDate, isInstalledLoaded } from '../../reducers/addon';
-import { setState as setBrowserState } from '../../actions/browser';
-import { getExperimentBySlug } from '../../reducers/experiments';
-import { getChosenTest } from '../../reducers/varianttests';
-import experimentSelector from '../../selectors/experiment';
-import { uninstallAddon, installAddon, enableExperiment, disableExperiment } from '../../lib/InstallManager';
-import { setLocalizations, setNegotiatedLanguages } from '../../actions/localizations';
-import { localizationsSelector, negotiatedLanguagesSelector } from '../../selectors/localizations';
-import { chooseTests } from '../../actions/varianttests';
-import addonActions from '../../actions/addon';
-import newsletterFormActions from '../../actions/newsletter-form';
-import RestartPage from '../../containers/RestartPage';
-import UpgradeWarningPage from '../../containers/UpgradeWarningPage';
-import { isFirefox, isMinFirefoxVersion, isMobile } from '../../lib/utils';
-import { staleNewsUpdatesSelector, freshNewsUpdatesSelector } from '../../selectors/news';
-import config from '../../config';
+Then, in componentDidMount it:
+
+- Chooses variant tests, placing the user in a particular group for any
+  varianttests (there aren't any)
+- Calls measurePageview. The implementation of measurePageview should
+  move into lib/utils.
+- Negotiates the language and triggers the translation with fluent-react.
+- Finally, it sets loading to false, causing the full page to render.
+
+restartRequired is very old code. We have not required a restart in a long
+time. It can be removed.
+
+  https://github.com/mozilla/testpilot/issues/3571
+
+Helmet is not doing anything but increase our bundle size. We could either
+just remove it, or fix it so that it works with fluent-react to properly
+localize the title.
+
+  https://github.com/mozilla/testpilot/issues/3572
+
+mapStateToProps and mapDispatchToProps is implemented for the entire
+application here. For better performance and separation of concerns, it
+would be better to split out a different map*ToProps for each Container,
+not just the toplevel App Container.
+
+  https://github.com/mozilla/testpilot/issues/2924
+*/
+
+import { MessageContext } from "fluent/compat";
+import { negotiateLanguages } from "fluent-langneg/compat";
+import { LocalizationProvider } from "fluent-react/compat";
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import { Helmet } from "react-helmet";
+
+import cookies from "js-cookie";
+import Clipboard from "clipboard";
+
+import likelySubtagsData from "cldr-core/supplemental/likelySubtags.json";
+
+import { getInstalled, isExperimentEnabled, isAfterCompletedDate, isInstalledLoaded } from "../../reducers/addon";
+import { getExperimentBySlug } from "../../reducers/experiments";
+import { getChosenTest } from "../../reducers/varianttests";
+import experimentSelector, { featuredExperimentsSelectorWithL10n, experimentsWithoutFeaturedSelectorWithL10n } from "../../selectors/experiment";
+import { uninstallAddon, installAddon, enableExperiment, disableExperiment } from "../../lib/InstallManager";
+import { setLocalizations, setNegotiatedLanguages } from "../../actions/localizations";
+import { localizationsSelector, negotiatedLanguagesSelector } from "../../selectors/localizations";
+import { chooseTests } from "../../actions/varianttests";
+import addonActions from "../../actions/addon";
+import newsletterFormActions from "../../actions/newsletter-form";
+import RestartPage from "../RestartPage";
+import UpgradeWarningPage from "../UpgradeWarningPage";
+import Loading from "../../components/Loading";
+import {
+  shouldOpenInNewTab,
+  fetchCountryCode
+} from "../../lib/utils";
+import {
+  makeNewsUpdatesForDialogSelector
+} from "../../selectors/news";
+import config from "../../config";
 
 let clipboard = null;
-if (typeof document !== 'undefined') {
-  clipboard = new Clipboard('button');
+if (typeof document !== "undefined") {
+  clipboard = new Clipboard("button");
 }
 
 export function shouldShowUpgradeWarning(hasAddon, hasAddonManager, thisIsFirefox, host) {
@@ -45,6 +93,9 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.lastPingPathname = null;
+    this.state = {
+      loading: true
+    };
   }
 
   measurePageview() {
@@ -55,28 +106,28 @@ class App extends Component {
 
     const pathname = window.location.pathname;
 
-    const experimentsPath = 'experiments/';
+    const experimentsPath = "experiments/";
 
-    if (pathname === '/') {
+    if (pathname === "/") {
       const installedCount = Object.keys(installed).length;
       const anyInstalled = installedCount > 0;
-      this.debounceSendToGA(pathname, 'pageview', {
+      this.debounceSendToGA(pathname, "pageview", {
         dimension1: hasAddon,
         dimension2: anyInstalled,
         dimension3: installedCount
       });
     } else if (pathname === experimentsPath) {
-      this.debounceSendToGA(pathname, 'pageview', {
+      this.debounceSendToGA(pathname, "pageview", {
         dimension1: hasAddon
       });
     } else if (pathname.indexOf(experimentsPath) === 0) {
       let slug = pathname.substring(experimentsPath.length);
       // Trim trailing slash, if necessary
-      if (slug.charAt(slug.length - 1) === '/') {
+      if (slug.charAt(slug.length - 1) === "/") {
         slug = slug.substring(0, slug.length - 1);
       }
       const experiment = this.props.getExperimentBySlug(slug);
-      this.debounceSendToGA(pathname, 'pageview', {
+      this.debounceSendToGA(pathname, "pageview", {
         dimension1: hasAddon,
         dimension4: isExperimentEnabled(experiment),
         dimension5: experiment.title
@@ -91,49 +142,48 @@ class App extends Component {
       const data = dataIn || {};
       data.hitType = type;
       data.location = window.location;
-      ga('send', data);
+      ga("send", data);
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.path !== prevProps.path) {
+      window.scrollTo(0, 0);
     }
   }
 
   componentDidMount() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    this.props.setHasAddon(!!window.navigator.testpilotAddon);
-    this.props.setBrowserState({
-      userAgent,
-      host: window.location.host,
-      protocol: window.location.protocol,
-      hasAddonManager: (typeof navigator.mozAddonManager !== 'undefined'),
-      isFirefox: isFirefox(userAgent),
-      isMobile: isMobile(userAgent),
-      isMinFirefox: isMinFirefoxVersion(userAgent, config.minFirefoxVersion),
-      isProdHost: window.location.host === config.prodHost,
-      isDevHost: config.devHosts.includes(window.location.host),
-      isDev: config.isDev,
-      locale: (navigator.language || '').split('-')[0]
-    });
     this.props.chooseTests();
     this.measurePageview();
+
+    const lang = window.navigator.language;
+
+    // set lang attr on <html> for a11y
+    document.documentElement.setAttribute("lang", lang);
+
+    // we should expand upon this in the future, but this should get us
+    // working for arabic
+    document.documentElement.setAttribute("dir", (lang === "ar" ? "rtl" : "ltr"));
 
     const langs = {};
 
     function addLang(lang, response) {
       if (response.ok) {
         return response.text().then(data => {
-          langs[lang] = `${langs[lang] || ''}${data}
-`;
+          langs[lang] = `${langs[lang] || ""}${data}`;
         });
       }
       return Promise.resolve();
     }
 
     const availableLanguages = document.querySelector(
-      'meta[name=availableLanguages]').content.split(',');
+      "meta[name=availableLanguages]").content.split(",");
 
     const negotiated = negotiateLanguages(
       navigator.languages,
       availableLanguages,
       {
-        defaultLocale: 'en-US',
+        defaultLocale: "en-US",
         likelySubtags: likelySubtagsData.supplemental.likelySubtags
       }
     );
@@ -150,21 +200,28 @@ class App extends Component {
     );
 
     Promise.all(promises).then(() => {
+      this.setState({ loading: false });
       this.props.setLocalizations(langs);
-      const staticNode = document.getElementById('static-root');
+      const staticNode = document.getElementById("static-root");
       if (staticNode) {
-        staticNode.parentNode.removeChild(staticNode);
+        staticNode.remove();
       }
     });
   }
 
   shouldShowUpgradeWarning() {
-    const { hasAddon, hasAddonManager, host } = this.props;
-    return shouldShowUpgradeWarning(hasAddon, hasAddonManager, this.props.isFirefox, host);
+    const { hasAddon, hasAddonManager, host, isFirefox } = this.props;
+    return shouldShowUpgradeWarning(hasAddon, hasAddonManager, isFirefox, host);
   }
 
   render() {
     const { restart } = this.props.addon;
+    const { loading } = this.state;
+    if (loading) {
+      return (<div className="full-page-wrapper centered overflow-hidden">
+        <Loading/>
+      </div>);
+    }
     if (restart.isRequired) {
       return <RestartPage {...this.props} />;
     }
@@ -175,27 +232,80 @@ class App extends Component {
 
     function* generateMessages(languages, localizations) {
       for (const lang of languages) {
-        if (typeof localizations[lang] === 'string') {
-          const cx = new MessageContext(lang);
+        if (typeof localizations[lang] === "string") {
+          const cx = new MessageContext(lang, {useIsolating: false});
           cx.addMessages(localizations[lang]);
           yield cx;
         }
       }
     }
 
-    return <LocalizationProvider messages={ generateMessages(
-      this.props.negotiatedLanguages,
-      this.props.localizations
-    ) }>
-      { React.cloneElement(this.props.children, this.props) }
-    </LocalizationProvider>;
+    return <div>
+      <Helmet>
+        <title>Firefox Test Pilot</title>
+      </Helmet>
+      <LocalizationProvider messages={ generateMessages(
+        this.props.negotiatedLanguages,
+        this.props.localizations
+      ) }>
+        { React.cloneElement(this.props.children, this.props) }
+      </LocalizationProvider>
+    </div>;
   }
 }
 
-function sendToGA(type, dataIn) {
+// These mirror breakpoints defined in frontend/src/styles/_utils.scss:$breakpoints
+export const BREAKPOINTS = {
+  BIG: "big",
+  MEDIUM: "medium",
+  SMALL: "small",
+  MOBILE: "mobile"
+};
+export const getBreakpoint = width => {
+  if (width >= 1020) {
+    return BREAKPOINTS.BIG;
+  } else if (width >= 769) {
+    return BREAKPOINTS.MEDIUM;
+  } else if (width >= 521) {
+    return BREAKPOINTS.SMALL;
+  }
+  return BREAKPOINTS.MOBILE;
+};
+
+/*
+Pings GA with the passed hitType and event data.
+
+Parameters:
+- type: indicates the type of event being reported to GA. One of 'pageview',
+  'screenview', 'event', 'transaction', 'item', 'social', 'exception', 'timing'.
+- dataIn: an object representing the event with some of the following
+  properties:
+    - eventCategory
+    - eventAction
+    - eventLabel
+    - outboundURL - a URL to which the browser should navigate after ensuring
+      that the event has been received by GA. It is done this way to prevent a
+      race condition between the logging of the event and the navigation to
+      another page. If outboundURL is provided here, evt must also be provided
+      in order to determine if the user would like this URL to open in a news
+      tab.
+- evt: the browser event that triggered the GA ping.
+*/
+function sendToGA(type, dataIn, evt = null) {
   const data = dataIn || {};
+  if (data.outboundURL && !evt) {
+    throw "If outboundURL is defined, you must also provide the click event.";
+  }
+  const openInNewTab = evt && shouldOpenInNewTab(evt);
+
+  // If we'll be opening a URL in the same tab, stop the navigation event from
+  // happening until after we've ensured that the GA ping has been logged.
+  if (data.outboundURL && openInNewTab === false) {
+    evt.preventDefault();
+  }
+
   const hitCallback = () => {
-    if (data.outboundURL) {
+    if (data.outboundURL && openInNewTab === false) {
       document.location = data.outboundURL;
     }
   };
@@ -205,7 +315,8 @@ function sendToGA(type, dataIn) {
     data.hitCallback = hitCallback;
     data.dimension8 = chosenTest.test;
     data.dimension9 = chosenTest.variant;
-    ga('send', data);
+    data.dimension10 = getBreakpoint(window.innerWidth);
+    ga("send", data);
   } else {
     hitCallback();
   }
@@ -215,7 +326,9 @@ const mapStateToProps = state => ({
   addon: state.addon,
   clientUUID: state.addon.clientUUID,
   experiments: experimentSelector(state),
-  freshNewsUpdates: freshNewsUpdatesSelector(state),
+  experimentsWithoutFeatured: experimentsWithoutFeaturedSelectorWithL10n(state),
+  featuredExperiments: featuredExperimentsSelectorWithL10n(state),
+  fetchCountryCode: fetchCountryCode,
   getExperimentBySlug: slug =>
     getExperimentBySlug(state.experiments, slug),
   hasAddon: state.addon.hasAddon,
@@ -236,25 +349,22 @@ const mapStateToProps = state => ({
   userAgent: state.browser.userAgent,
   locale: state.browser.locale,
   localizations: localizationsSelector(state),
+  majorNewsUpdates: makeNewsUpdatesForDialogSelector(
+    cookies.get("updates-last-viewed-date"),
+    Date.now()
+  )(state),
   negotiatedLanguages: negotiatedLanguagesSelector(state),
   newsletterForm: state.newsletterForm,
   protocol: state.browser.protocol,
   routing: state.routing,
-  slug: state.experiments.slug,
-  staleNewsUpdates: staleNewsUpdatesSelector(state),
   varianttests: state.varianttests
 });
 
 
 const mapDispatchToProps = dispatch => ({
-  setBrowserState: state => dispatch(setBrowserState(state)),
   chooseTests: () => dispatch(chooseTests()),
-  navigateTo: path => {
-    window.location = path;
-  },
-  enableExperiment: experiment => enableExperiment(dispatch, experiment),
+  enableExperiment: (experiment, eventCategory, eventLabel) => enableExperiment(dispatch, experiment, sendToGA, eventCategory, eventLabel),
   disableExperiment: experiment => disableExperiment(dispatch, experiment),
-  requireRestart: () => dispatch(addonActions.requireRestart()),
   setHasAddon: installed => dispatch(addonActions.setHasAddon(installed)),
   newsletterForm: {
     setEmail: email =>
@@ -262,7 +372,7 @@ const mapDispatchToProps = dispatch => ({
     setPrivacy: privacy =>
       dispatch(newsletterFormActions.newsletterFormSetPrivacy(privacy)),
     subscribe: (email) =>
-      dispatch(newsletterFormActions.newsletterFormSubscribe(dispatch, email, '' + window.location))
+      dispatch(newsletterFormActions.newsletterFormSubscribe(dispatch, email, "" + window.location))
   },
   setNegotiatedLanguages: negotiatedLanguages =>
     dispatch(setNegotiatedLanguages(negotiatedLanguages)),
@@ -280,19 +390,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     sendToGA,
     clipboard,
     setPageTitleL10N: (id, args) => {
-      if (typeof document === 'undefined') { return; }
+      if (typeof document === "undefined") { return; }
 
-      const title = document.querySelector('head title');
-      title.setAttribute('data-l10n-id', id);
-      title.setAttribute('data-l10n-args', JSON.stringify(args));
+      const title = document.querySelector("head title");
+      title.setAttribute("data-l10n-id", id);
+      title.setAttribute("data-l10n-args", JSON.stringify(args));
     },
     openWindow: (href, name) => window.open(href, name),
     getWindowLocation: () => window.location,
-    replaceState: (state, title, location) => window.history.replaceState(state, title, location),
     addScrollListener: listener =>
-      window.addEventListener('scroll', listener),
+      window.addEventListener("scroll", listener),
     removeScrollListener: listener =>
-      window.removeEventListener('scroll', listener),
+      window.removeEventListener("scroll", listener),
     getScrollY: () => window.pageYOffset || document.documentElement.scrollTop,
     setScrollY: pos => window.scrollTo(0, pos),
     getElementY: sel => {
@@ -304,18 +413,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       return el ? el.offsetHeight : 0;
     },
     getCookie: name => cookies.get(name),
-    removeCookie: name => cookies.remove(name),
-    getExperimentLastSeen: experiment => {
-      if (typeof document !== 'undefined') {
-        return parseInt(window.localStorage.getItem(`experiment-last-seen-${experiment.id}`), 10);
-      }
-      return 0;
-    },
-    setExperimentLastSeen: (experiment, value) => {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(`experiment-last-seen-${experiment.id}`, value || Date.now());
-      }
-    }
+    setCookie: (name, value) => cookies.set(name, value),
+    removeCookie: name => cookies.remove(name)
   }, ownProps, stateProps, dispatchProps, {
     newsletterForm
   });

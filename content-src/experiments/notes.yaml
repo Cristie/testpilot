@@ -1,21 +1,25 @@
 id: 15
 title: 'Notes'
 slug: notes
-platforms: ['addon']
-min_release: 54
-thumbnail: /static/images/experiments/notes/experiments_experiment/thumbnail.png
+is_featured: false
+platforms: ['addon', 'android']
+android_url: https://play.google.com/store/apps/details?id=org.mozilla.testpilot.notes
+min_release: 57
+thumbnail: /static/images/experiments/notes/notes-thumbnail.png
 description: >
-  A simple notepad built into Firefox. Ever need to jot
-  something down while you browse the web? This is the experiment for you.
+  Take notes as you browse the web, and keep in sync with our new Android app.
+description_l10nsuffix: 'mobile'
 introduction: >
-  Notes adds a simple, one-page notepad to your browser’s sidebar. We’ve added a few basic formatting options to start, but we want your feedback to tell us what features you’d like to see us add.
-image_twitter: /static/images/experiments/notes/social/notes-twitter.jpg
-image_facebook: /static/images/experiments/notes/social/notes-fb.jpg
-video_url: https://www.youtube.com/embed/vaFvr_70yxw
+  Notes by Firefox is a simple, secure notepad extension that now comes with a companion app for Android.
+  Sign in with your Firefox Account to access, edit, or delete notes, and your notes will automatically sync between Firefox for desktop and Android.
+introduction_l10nsuffix: 'mobile'
+image_twitter: /static/images/experiments/notes/notes-twitter.jpg
+image_facebook: /static/images/experiments/notes/notes-fb.jpg
 changelog_url: 'https://github.com/mozilla/notes/releases'
 contribute_url: 'https://github.com/mozilla/notes'
 bug_report_url: 'https://github.com/mozilla/notes/issues'
 discourse_url: 'https://discourse.mozilla-community.org/c/test-pilot/notes'
+legal_notice: By proceeding, you agree to the <a>terms</a> and <a>privacy</a> policies of Test Pilot and the <a>Notes privacy policy</a>.
 privacy_notice_url: 'https://github.com/mozilla/notes/blob/master/docs/metrics.md'
 measurements:
   - >
@@ -27,26 +31,41 @@ measurements:
     access the feature, and what buttons you may click.
 xpi_url: 'https://testpilot.firefox.com/files/notes@mozilla.com/latest'
 addon_id: 'notes@mozilla.com'
-gradient_start: '#A665B4'
-gradient_stop: '#CF5858'
+gradient_start: '#85A9EC'
+gradient_stop: '#4173CE'
 details:
   -
-    image: /static/images/experiments/notes/experiments_experimentdetail/detail1.jpg
+    image: /static/images/experiments/notes/notes-detail-1.jpg
     copy: >
-      It’s a notepad. Why didn’t we think of this earlier?
+      Notes keeps you connected in Firefox and on Android.
+    copy_l10nsuffix: 'mobile'
+  -
+    image: /static/images/experiments/notes/notes-detail-2.jpg
+    copy: >
+      Use your Firefox Account to sign in and securely sync your notes.
+    copy_l10nsuffix: 'mobile'
 tour_steps:
   -
-    image: /static/images/experiments/notes/experiments_experimenttourstep/notes-tour-1.jpg
+    image: /static/images/experiments/notes/notes-tour-1.jpg
     copy: Notes adds a simple notepad to your browser’s sidebar.
   -
-    image: /static/images/experiments/notes/experiments_experimenttourstep/notes-tour-2.jpg
-    copy: We’ve built some basic formatting options into Notes. With your feedback we will add more features.
+    image: /static/images/experiments/notes/notes-tour-2.jpg
+    copy: Hit the arrow button to see all of your notes.
+    copy_l10nsuffix: 'multinote'
   -
-    image: /static/images/experiments/notes/experiments_experimenttourstep/notes-tour-3.jpg
-    copy: You can get back to the Notes experiment by clicking on the sidebar icon.
+    image: /static/images/experiments/notes/notes-tour-3.jpg
+    copy: Create a new note whenever you need to jot something down.
+    copy_l10nsuffix: 'multinote'
   -
-    image: /static/images/experiments/notes/experiments_experimenttourstep/notes-tour-4.jpg
+    image: /static/images/experiments/notes/notes-tour-4.jpg
+    copy: Sign in to your Firefox Account to sync your notes on desktop and Android.
+    copy_l10nsuffix: 'mobile'
+  -
+    image: /static/images/experiments/notes/notes-tour-5.jpg
     copy: You can always give us feedback or disable Notes from Test Pilot.
+  -
+    image: /static/images/experiments/notes/notes-tour-6.jpg
+    copy: Make sure to check out our new Android app as well!
 contributors:
   -
     display_name: 'Udara Weerasinghege'
@@ -76,6 +95,31 @@ contributors:
     display_name: 'Emil Pasca'
     title: 'Softvision QA'
     avatar: /static/images/experiments/avatars/emil.jpg
+  -
+    display_name: 'Ethan Glasser-Camp'
+    title: 'Software Engineer'
+    avatar: /static/images/experiments/avatars/ethan-g.jpg
+  -
+    display_name: 'Anwesh Nayak'
+    title: 'Community Contributor'
+    avatar: /static/images/experiments/avatars/anwesh-n.jpg
+  -
+    display_name: 'Soumya Himanish Mohapatra'
+    title: 'Community Contributor'
+    avatar: /static/images/experiments/avatars/soumya-h.jpg
+  -
+    display_name: 'Sébastien Barbier'
+    title: 'Software Engineer'
+    avatar: /static/images/experiments/avatars/sebastien-b.jpg
+  -
+    display_name: 'Marius Coman'
+    title: 'Softvision QA'
+    avatar: /static/images/experiments/avatars/marius.jpg
+  -
+    display_name: 'Anthony Lam'
+    title: 'Designer'
+    avatar: /static/images/experiments/avatars/antlam.jpg
 created: '2017-08-01T14:00:00Z'
 launch_date: '2017-08-01T14:00:00Z'
-order: 1
+modified: '2018-07-10T13:00:00.000000Z'
+order: 0

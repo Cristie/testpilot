@@ -6,6 +6,31 @@ We have several mechanisms for testing parts of Test Pilot. All of these tests
 must pass for Pull Requests to be accepted into the project, so it's very
 handy to know how to run them and write new ones as code changes.
 
+# Lint
+
+We use the recommended mozilla-central lint rules. See the
+[source for eslint-plugin-mozilla][source] for details about the rules.
+
+We also use the following eslint plugin recommended rules:
+
+ - eslint-plugin-import
+ - eslint-plugin-flowtype
+ - eslint-plugin-react
+
+To lint the frontend, run `npm run lint` in the testpilot directory.
+To lint the addon, run `npm run lint` in the addon directory.
+
+To lint only one file in the frontend, run eslint inside the testpilot directory:
+
+    ./node_modules/.bin/eslint [path/to/file.js]
+
+To lint only one file in the addon, run eslint inside the addon directory:
+
+    ./node_modules/.bin/eslint -c ../.eslintrc [path/to/file.js]
+
+[source]: https://dxr.mozilla.org/mozilla-central/source/tools/lint/eslint/eslint-plugin-mozilla
+
+
 ## All tests
 
 To quickly run all tests, including addon tests, frontend tests, eslint checks, and flow types coverage reports, use `npm run test:all`.
@@ -59,7 +84,45 @@ Look in the `addon/test` directory for examples of tests.
 
 ## Integration tests
 
-Integration tests are currently disabled and being re-evaluated. See [Issue #1975][]
-for details.
+The tests expect the WebExtension to be built. If not you will receive an error
+stating that the addon or webextension is not found.
 
-[Issue #1975]: https://github.com/mozilla/testpilot/issues/1975
+Please follow the instructions [here](./quickstart.md).
+
+
+### Test environment setup
+
+The tests can be run on any modern version of Firefox, but to run the installation tests, you must
+use Firefox Nightly. Firefox must also be executable from the command line. After installing, you can run
+this command to see if it is:
+
+```sh
+firefox --version
+```
+### Run the tests
+1. Install [Tox].
+2. Download geckodriver [v0.19.1][geckodriver] or later and ensure it's
+   executable and in your path.
+
+```sh
+tox
+```
+
+This will run the integration tests as well as [flake8][flake8].
+
+## Changing or adding element selectors
+
+[Selenium] allows for multiple types of HTML/CSS selection methods. The
+documentation found [here][selenium-api] shows the different ways to use these
+available methods.
+
+The pytest plugin that we use for running tests has a number of advanced command
+line options available. To see the options available, run `pytest --help`. The
+full documentation for the plugin can be found [here][pytest-selenium].
+
+[flake8]: http://flake8.pycqa.org/en/latest/
+[geckodriver]: https://github.com/mozilla/geckodriver/releases/tag/v0.19.1
+[pytest-selenium]: http://pytest-selenium.readthedocs.org/
+[Selenium]: http://selenium-python.readthedocs.io/index.html
+[selenium-api]: http://selenium-python.readthedocs.io/locating-elements.html
+[Tox]: http://tox.readthedocs.io/
